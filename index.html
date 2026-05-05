@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Subscribe Quiz</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #f2f2f2;
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    margin: 30px auto;
+    width: 350px;
+    border-radius: 10px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 6px;
+    background: red;
+    color: white;
+    cursor: pointer;
+}
+
+button.active {
+    background: green;
+}
+
+button:disabled {
+    background: gray;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Subscribe badaye sub to sub</h2>
+
+    <div id="buttons"></div>
+
+    <div id="addBox" style="display:none;">
+        <h3>Add Your Channel</h3>
+        <input type="text" id="link" placeholder="Enter YouTube Link">
+        <button onclick="addLink()">Submit</button>
+    </div>
+</div>
+
+<script>
+
+// 🔴 MAIN CHANNEL
+const mainChannel = "https://www.youtube.com/@ybyash?sub_confirmation=1";
+
+// 🔴 STORAGE
+let links = JSON.parse(localStorage.getItem("links")) || [];
+
+// 🔴 STATE
+let step = parseInt(localStorage.getItem("step")) || 0;
+
+// 🔴 TOTAL BUTTONS = 6 (1 main + 5 users)
+let total = 6;
+
+// 🔴 CREATE BUTTONS
+function render() {
+
+    let box = document.getElementById("buttons");
+    box.innerHTML = "";
+
+    for (let i = 0; i < total; i++) {
+
+        let btn = document.createElement("button");
+
+        // label
+        if (i === 0) {
+            btn.innerText = "Subscribe Main Channel";
+        } else {
+            btn.innerText = "Subscribe User " + i;
+        }
+
+        // completed
+        if (i < step) {
+            btn.classList.add("active");
+        }
+
+        // only next step enabled
+        btn.disabled = (i !== step);
+
+        btn.onclick = () => clickBtn(i);
+
+        box.appendChild(btn);
+    }
+
+    // show add box only after last
+    if (step === total) {
+        document.getElementById("addBox").style.display = "block";
+    }
+}
+
+// 🔴 CLICK FUNCTION
+function clickBtn(i) {
+
+    let link;
+
+    if (i === 0) {
+        link = mainChannel;
+    } else {
+        link = links[i - 1] || "#";
+    }
+
+    window.open(link, "_blank");
+
+    // move to next step
+    step++;
+    localStorage.setItem("step", step);
+
+    render();
+}
+
+// 🔴 ADD LINK (ALWAYS 5TH SLOT)
+function addLink() {
+
+    let newLink = document.getElementById("link").value.trim();
+
+    if (!newLink.includes("youtube.com")) {
+        alert("Enter valid link");
+        return;
+    }
+
+    // FIFO cycle
+    if (links.length >= 5) {
+        links.shift();
+    }
+
+    links.push(newLink);
+
+    localStorage.setItem("links", JSON.stringify(links));
+
+    // reset for next user
+    localStorage.removeItem("step");
+
+    alert("Added! Next user flow started.");
+
+    location.reload();
+}
+
+// INIT
+render();
+
+</script>
+
+</body>
+</html>
